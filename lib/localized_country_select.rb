@@ -25,13 +25,15 @@ module LocalizedCountrySelect
     # for <tt><option></tt> tags
     def localized_countries_array(options={})
       exclude = Array(options[:exclude]).map {|code| code.to_s.upcase }
+      locale = options.delete(:locale) || I18n.locale
 
       if(options[:description]==:abbreviated)
-        I18n.translate(:countries).map { |key, value| [key.to_s.upcase] if !exclude.include?(key.to_s.upcase) }
+        I18n.translate(:countries, locale: locale).map { |key, value| [key.to_s.upcase] if !exclude.include?(key.to_s.upcase) }
       else
-        I18n.translate(:countries).map { |key, value| [value, key.to_s.upcase] if !exclude.include?(key.to_s.upcase) }
+        I18n.translate(:countries, locale: locale).map { |key, value| [value, key.to_s.upcase] if !exclude.include?(key.to_s.upcase) }
       end.compact.sort_by { |country| country.first.parameterize }
     end
+
     # Return array with codes and localized country names for array of country codes passed as argument
     # == Example
     #   priority_countries_array([:TW, :CN])
@@ -51,7 +53,6 @@ module ActionView
   module Helpers
 
     module FormOptionsHelper
-
       # Return select and option tags for the given object and method, using +localized_country_options_for_select+
       # to generate the list of option tags. Uses <b>country code</b>, not name as option +value+.
       # Country codes listed as an array of symbols in +priority_countries+ argument will be listed first
@@ -92,7 +93,6 @@ module ActionView
         end
       end
       alias_method :country_options_for_select, :localized_country_options_for_select
-
     end
 
     module ToCountrySelectTag
@@ -109,8 +109,7 @@ module ActionView
       end
     end
 
-    if defined?(ActionView::Helpers::InstanceTag) &&
-        ActionView::Helpers::InstanceTag.instance_method(:initialize).arity != 0
+    if defined?(ActionView::Helpers::InstanceTag) && ActionView::Helpers::InstanceTag.instance_method(:initialize).arity != 0
       class InstanceTag
         include ToCountrySelectTag
       end

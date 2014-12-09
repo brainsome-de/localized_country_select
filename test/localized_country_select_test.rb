@@ -70,7 +70,7 @@ class LocalizedCountrySelectTest < Test::Unit::TestCase
 
   def test_excludes_countries
     assert_nothing_raised { LocalizedCountrySelect::localized_countries_array(:exclude => :ZZ) }
-    
+
     assert_block do
       not LocalizedCountrySelect::localized_countries_array(:exclude => :ZZ).any? {|country| country.last == "ZZ"}
     end
@@ -86,9 +86,14 @@ class LocalizedCountrySelectTest < Test::Unit::TestCase
     I18n.locale = 'en'
     assert_equal 266, LocalizedCountrySelect::localized_countries_array.size
     assert_equal 'Afghanistan', LocalizedCountrySelect::localized_countries_array.first[0]
+    assert_equal 250, LocalizedCountrySelect::localized_countries_array(locale: :cz).size
+    assert_equal 'Afghánistán', LocalizedCountrySelect::localized_countries_array(locale: :cz).first[0]
+
     I18n.locale = 'cz'
     assert_equal 250, LocalizedCountrySelect::localized_countries_array.size
     assert_equal 'Afghánistán', LocalizedCountrySelect::localized_countries_array.first[0]
+    assert_equal 266, LocalizedCountrySelect::localized_countries_array(locale: :en).size
+    assert_equal 'Afghanistan', LocalizedCountrySelect::localized_countries_array(locale: :en).first[0]
   end
 
   def test_priority_countries_returns_correctly_and_in_correct_order
