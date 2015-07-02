@@ -1,6 +1,7 @@
 require 'rubygems'
 require 'open-uri'
 require 'active_support/inflector'
+require 'csv'
 
 # Rake task for importing country names from Unicode.org's CLDR repository
 # (http://www.unicode.org/cldr/data/charts/summary/root.html).
@@ -56,9 +57,14 @@ namespace :import do
 
     set_parser(ENV['PARSER']) if ENV['PARSER']
     puts "... parsing the HTML file using #{parser.name.split("::").last}"
-    countries = parser.parse(html).inject([]) { |arr, (code, attrs)| arr << attrs }
+    countries = parser.parse(html).inject([]) { |arr, (_code, attrs)| arr << attrs }
     countries.sort_by! { |c| c[:code] }
+    puts '... fetching correct list of country codes and filtering translations'
+    correct_list = CSV.parse(open('https://raw.githubusercontent.com/datasets/un-locode/master/data/country-codes.csv').string)
+    country_codes = correct_list.map { |c| c[0] }
+    countries.delete_if { |c| !country_codes.member?(c[:code].to_s) }
     puts "\n\n... imported #{countries.count} countries:"
+
     puts countries.map { |c| "#{c[:code]}: #{c[:name]}" }.join(", ")
 
 
@@ -136,7 +142,7 @@ TAIL
         document.search("//tr").inject({}) do |hash, row|
           n = row.search("td[@class='n']")
           g = row.search("td")
-          if n.inner_html =~ /NamesTerritories/ && g.count >= 6 && g[4].inner_html =~ /^[A-Z]{2}/
+          if n.inner_html =~ /Locale Display Names/ && g.count >= 6 && g[4].inner_html =~ /^[A-Z]{2}$/
             code = g[4].inner_text
             code = code[-code.size, 2].to_sym
             name = row.search("td[@class='v']:not([@title])").inner_text
@@ -163,7 +169,7 @@ TAIL
         document.find("//tr").inject({}) do |hash, row|
           n = row.find("td[@class='n']")
           g = row.find("td")
-          if n.map(&:content).join =~ /NamesTerritories/ && g.count >= 6 && g[4].inner_xml =~ /^[A-Z]{2}/
+          if n.map(&:content).join =~ /Locale Display Names/ && g.count >= 6 && g[4].inner_xml =~ /^[A-Z]{2}/
             code = g[4].content
             code = code[-code.size, 2].to_sym
             name = row.find("td[@class='v' and not(@title)]").map(&:content).join
