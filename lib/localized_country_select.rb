@@ -25,7 +25,7 @@ module LocalizedCountrySelect
     # for <tt><option></tt> tags
     def localized_countries_array(options={})
       exclude = Array(options[:exclude]).map {|code| code.to_s.upcase }
-      locale = options.delete(:locale) || I18n.locale
+      locale = options[:locale] || I18n.locale
 
       if(options[:description]==:abbreviated)
         I18n.translate(:countries, locale: locale).map { |key, value| [key.to_s.upcase] if !exclude.include?(key.to_s.upcase) }
@@ -39,10 +39,12 @@ module LocalizedCountrySelect
     #   priority_countries_array([:TW, :CN])
     #   # => [ ['Taiwan', 'TW'], ['China', 'CN'] ]
     def priority_countries_array(country_codes=[],options={})
+      locale = options[:locale] || I18n.locale
+
       if(options[:description]==:abbreviated)
         country_codes.map { |code| [code.to_s.upcase] }
       else
-        countries = I18n.translate(:countries)
+        countries = I18n.translate(:countries, locale: locale)
         country_codes.map { |code| [countries[code.to_s.upcase.to_sym], code.to_s.upcase] }
       end
     end

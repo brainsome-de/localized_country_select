@@ -62,6 +62,16 @@ class LocalizedCountrySelectTest < Test::Unit::TestCase
       Regexp.escape("<option value=\"ES\">Spain</option>\n<option value=\"CZ\">Czech Republic</option><option value=\"\" disabled=\"disabled\">-------------</option>\n<option value=\"AF\">Afghanistan</option>\n"))
   end
 
+  def test_should_passing_locale_option
+    country_options_cz = localized_country_options_for_select(nil, nil, locale: :cz)
+    country_options_en = localized_country_options_for_select(nil, nil, locale: :en)
+    assert_not_equal country_options_cz, country_options_en
+
+    country_options_cz = localized_country_options_for_select(nil, [:ES, :CZ], locale: :cz)
+    country_options_en = localized_country_options_for_select(nil, [:ES, :CZ], locale: :en)
+    assert_not_equal country_options_cz, country_options_en
+  end
+
   def test_i18n_should_know_about_countries
     assert_equal 'Spain', I18n.t('ES', :scope => 'countries')
     I18n.locale = 'cz'
@@ -111,6 +121,12 @@ class LocalizedCountrySelectTest < Test::Unit::TestCase
     I18n.locale = 'en'
     assert_equal [ ['United States', 'US'], ['Canada', 'CA'] ], LocalizedCountrySelect::priority_countries_array(['us', 'ca'])
     assert_equal [ ['United States', 'US'], ['Canada', 'CA'] ], LocalizedCountrySelect::priority_countries_array([:us, :ca])
+  end
+
+  def test_priority_countries_allows_passing_locale_option
+    I18n.locale = 'cz'
+    assert_not_equal [ ['Taiwan', 'TW'], ['China', 'CN'] ], LocalizedCountrySelect::priority_countries_array([:TW, :CN])
+    assert_equal [ ['Taiwan', 'TW'], ['China', 'CN'] ], LocalizedCountrySelect::priority_countries_array([:TW, :CN], locale: :en)
   end
 
   def test_should_list_countries_with_accented_names_in_correct_order
